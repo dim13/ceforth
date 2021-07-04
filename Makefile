@@ -1,2 +1,2 @@
-ceForth: ceForth_33.c
+ceForth: ceForth.c
 	$(CC) $< -o $@
