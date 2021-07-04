@@ -265,7 +265,7 @@ void equal(void)
 }
 void uless(void)
 {
-	top = LOWER(stack[(char)S], top) LOGICAL; (char)S--;
+	top = LOWER(stack[(char)S], top) LOGICAL; S--;
 }
 void ummod(void)
 {
@@ -301,7 +301,7 @@ void mod(void)
 }
 void slash(void)
 {
-	top = (top) ? stack[(char)S--] / top : (stack[(char)S--], 0);
+	top = (top) ? stack[(char)S--] / top : (S--, 0);
 }
 void umsta(void)
 {
@@ -369,11 +369,11 @@ void count(void)
 void max(void)
 {
 	if (top < stack[(char)S]) pop;
-	else (char)S--;
+	else S--;
 }
 void min(void)
 {
-	if (top < stack[(char)S]) (char) S--;
+	if (top < stack[(char)S]) S--;
 	else pop;
 }
 
@@ -467,8 +467,8 @@ void HEADER(int lex, const char seq[]) {
 	}
 	while (P & 3) { cData[P++] = 0; }
 	printf("\n");
-	printf(seq);
-	printf(" %X", P);
+	printf("%s", seq);
+	printf(" %lX", P);
 }
 int CODE(int len, ...) {
 	int addr = P;
@@ -737,7 +737,7 @@ void ABORQ(const char seq[]) {
 void CheckSum() {
 	int i;
 	char sum = 0;
-	printf("\n%4X ", P);
+	printf("\n%4lX ", P);
 	for (i = 0; i < 16; i++) {
 		sum += cData[P];
 		printf("%2X", cData[P++]);
@@ -1381,7 +1381,7 @@ int main(int ac, char* av[])
 
 	// Boot Up
 
-	printf("\n\nIZ=%X R-stack=%X", P, (popR << 2));
+	printf("\n\nIZ=%lX R-stack=%lX", P, (popR << 2));
 	P = 0;
 	int RESET = LABEL(2, 6, COLD);
 	P = 0x90;
