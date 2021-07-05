@@ -616,8 +616,7 @@ CODE(int len, ...)
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
-		int j = va_arg(argList, int);
-		cData[P++] = j;
+		cData[P++] = va_arg(argList, int);
 	}
 	va_end(argList);
 	return addr;
@@ -632,8 +631,7 @@ COLON(int len, ...)
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
-		int j = va_arg(argList, int);
-		data[IP++] = j;
+		data[IP++] = va_arg(argList, int);
 	}
 	P = IP << 2;
 	va_end(argList);
@@ -648,8 +646,7 @@ LABEL(int len, ...)
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
-		int j = va_arg(argList, int);
-		data[IP++] = j;
+		data[IP++] = va_arg(argList, int);
 	}
 	P = IP << 2;
 	va_end(argList);
@@ -664,8 +661,7 @@ BEGIN(int len, ...)
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
-		int j = va_arg(argList, int);
-		data[IP++] = j;
+		data[IP++] = va_arg(argList, int);
 	}
 	P = IP << 2;
 	va_end(argList);
@@ -680,8 +676,7 @@ AGAIN(int len, ...)
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
-		int j = va_arg(argList, int);
-		data[IP++] = j;
+		data[IP++] = va_arg(argList, int);
 	}
 	P = IP << 2;
 	va_end(argList);
@@ -696,8 +691,7 @@ UNTIL(int len, ...)
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
-		int j = va_arg(argList, int);
-		data[IP++] = j;
+		data[IP++] = va_arg(argList, int);
 	}
 	P = IP << 2;
 	va_end(argList);
@@ -716,8 +710,7 @@ WHILE(int len, ...)
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
-		int j = va_arg(argList, int);
-		data[IP++] = j;
+		data[IP++] = va_arg(argList, int);
 	}
 	P = IP << 2;
 	va_end(argList);
@@ -733,8 +726,7 @@ REPEAT(int len, ...)
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
-		int j = va_arg(argList, int);
-		data[IP++] = j;
+		data[IP++] = va_arg(argList, int);
 	}
 	P = IP << 2;
 	va_end(argList);
@@ -750,8 +742,7 @@ IF(int len, ...)
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
-		int j = va_arg(argList, int);
-		data[IP++] = j;
+		data[IP++] = va_arg(argList, int);
 	}
 	P = IP << 2;
 	va_end(argList);
@@ -768,8 +759,7 @@ ELSE(int len, ...)
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
-		int j = va_arg(argList, int);
-		data[IP++] = j;
+		data[IP++] = va_arg(argList, int);
 	}
 	P = IP << 2;
 	va_end(argList);
@@ -783,8 +773,7 @@ THEN(int len, ...)
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
-		int j = va_arg(argList, int);
-		data[IP++] = j;
+		data[IP++] = va_arg(argList, int);
 	}
 	P = IP << 2;
 	va_end(argList);
@@ -799,8 +788,7 @@ FOR(int len, ...)
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
-		int j = va_arg(argList, int);
-		data[IP++] = j;
+		data[IP++] = va_arg(argList, int);
 	}
 	P = IP << 2;
 	va_end(argList);
@@ -815,8 +803,7 @@ NEXT(int len, ...)
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
-		int j = va_arg(argList, int);
-		data[IP++] = j;
+		data[IP++] = va_arg(argList, int);
 	}
 	P = IP << 2;
 	va_end(argList);
@@ -835,8 +822,7 @@ AFT(int len, ...)
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
-		int j = va_arg(argList, int);
-		data[IP++] = j;
+		data[IP++] = va_arg(argList, int);
 	}
 	P = IP << 2;
 	va_end(argList);
@@ -1304,7 +1290,7 @@ main(int ac, char* av[])
 	IF(1, EXITT);
 	ELSE(1, ERRORR);
 	THEN(0);
-	HEADER(IMEDD + 1, "[");
+	HEADER(IMEDD | 1, "[");
 	int LBRAC = COLON(5, DOLIT, INTER, TEVAL, STORE, EXITT);
 	HEADER(3, ".OK");
 	int DOTOK = COLON(6, CR, DOLIT, INTER, TEVAL, AT, EQUAL);
@@ -1325,7 +1311,7 @@ main(int ac, char* av[])
 
 	HEADER(1, ",");
 	int COMMA = COLON(7, HERE, DUPP, CELLP, CP, STORE, STORE, EXITT);
-	HEADER(IMEDD + 7, "LITERAL");
+	HEADER(IMEDD | 7, "LITERAL");
 	int LITER = COLON(5, DOLIT, DOLIT, COMMA, COMMA, EXITT);
 	HEADER(5, "ALLOT");
 	int ALLOT = COLON(4, ALIGN, CP, PSTOR, EXITT);
@@ -1344,7 +1330,7 @@ main(int ac, char* av[])
 	int TICK = COLON(2, TOKEN, NAMEQ);
 	IF(1, EXITT);
 	THEN(1, ERRORR);
-	HEADER(IMEDD + 9, "[COMPILE]");
+	HEADER(IMEDD | 9, "[COMPILE]");
 	int BCOMP = COLON(3, TICK, COMMA, EXITT);
 	HEADER(7, "COMPILE");
 	int COMPI = COLON(7, RFROM, DUPP, AT, COMMA, CELLP, TOR, EXITT);
@@ -1363,7 +1349,7 @@ main(int ac, char* av[])
 	int RBRAC = COLON(5, DOLIT, SCOMP, TEVAL, STORE, EXITT);
 	HEADER(1, ":");
 	int COLN = COLON(7, TOKEN, SNAME, RBRAC, DOLIT, 0x6, COMMA, EXITT);
-	HEADER(IMEDD + 1, ";");
+	HEADER(IMEDD | 1, ";");
 	int SEMIS = COLON(6, DOLIT, EXITT, COMMA, LBRAC, OVERT, EXITT);
 
 	// Debugging Tools
@@ -1409,37 +1395,37 @@ main(int ac, char* av[])
 
 	// Structure Compiler
 
-	HEADER(IMEDD + 4, "THEN");
+	HEADER(IMEDD | 4, "THEN");
 	int THENN = COLON(4, HERE, SWAP, STORE, EXITT);
-	HEADER(IMEDD + 3, "FOR");
+	HEADER(IMEDD | 3, "FOR");
 	int FORR = COLON(4, COMPI, TOR, HERE, EXITT);
-	HEADER(IMEDD + 5, "BEGIN");
+	HEADER(IMEDD | 5, "BEGIN");
 	int BEGIN = COLON(2, HERE, EXITT);
-	HEADER(IMEDD + 4, "NEXT");
+	HEADER(IMEDD | 4, "NEXT");
 	int NEXT = COLON(4, COMPI, DONXT, COMMA, EXITT);
-	HEADER(IMEDD + 5, "UNTIL");
+	HEADER(IMEDD | 5, "UNTIL");
 	int UNTIL = COLON(4, COMPI, QBRAN, COMMA, EXITT);
-	HEADER(IMEDD + 5, "AGAIN");
+	HEADER(IMEDD | 5, "AGAIN");
 	int AGAIN = COLON(4, COMPI, BRAN, COMMA, EXITT);
-	HEADER(IMEDD + 2, "IF");
+	HEADER(IMEDD | 2, "IF");
 	int IFF = COLON(7, COMPI, QBRAN, HERE, DOLIT, 0, COMMA, EXITT);
-	HEADER(IMEDD + 5, "AHEAD");
+	HEADER(IMEDD | 5, "AHEAD");
 	int AHEAD = COLON(7, COMPI, BRAN, HERE, DOLIT, 0, COMMA, EXITT);
-	HEADER(IMEDD + 6, "REPEAT");
+	HEADER(IMEDD | 6, "REPEAT");
 	int REPEA = COLON(3, AGAIN, THENN, EXITT);
-	HEADER(IMEDD + 3, "AFT");
+	HEADER(IMEDD | 3, "AFT");
 	int AFT = COLON(5, DROP, AHEAD, HERE, SWAP, EXITT);
-	HEADER(IMEDD + 4, "ELSE");
+	HEADER(IMEDD | 4, "ELSE");
 	int ELSEE = COLON(4, AHEAD, SWAP, THENN, EXITT);
-	HEADER(IMEDD + 4, "WHEN");
+	HEADER(IMEDD | 4, "WHEN");
 	int WHEN = COLON(3, IFF, OVER, EXITT);
-	HEADER(IMEDD + 5, "WHILE");
+	HEADER(IMEDD | 5, "WHILE");
 	int WHILEE = COLON(3, IFF, SWAP, EXITT);
-	HEADER(IMEDD + 6, "ABORT\"");
+	HEADER(IMEDD | 6, "ABORT\"");
 	int ABRTQ = COLON(6, DOLIT, ABORQP, HERE, STORE, STRCQ, EXITT);
-	HEADER(IMEDD + 2, "$\"");
+	HEADER(IMEDD | 2, "$\"");
 	int STRQ = COLON(6, DOLIT, STRQP, HERE, STORE, STRCQ, EXITT);
-	HEADER(IMEDD + 2, ".\"");
+	HEADER(IMEDD | 2, ".\"");
 	int DOTQQ = COLON(6, DOLIT, DOTQP, HERE, STORE, STRCQ, EXITT);
 	HEADER(4, "CODE");
 	int CODE = COLON(4, TOKEN, SNAME, OVERT, EXITT);
@@ -1449,11 +1435,11 @@ main(int ac, char* av[])
 	int VARIA = COLON(5, CREAT, DOLIT, 0, COMMA, EXITT);
 	HEADER(8, "CONSTANT");
 	int CONST = COLON(6, CODE, DOLIT, 0x2004, COMMA, COMMA, EXITT);
-	HEADER(IMEDD + 2, ".(");
+	HEADER(IMEDD | 2, ".(");
 	int DOTPR = COLON(5, DOLIT, 0x29, PARSE, TYPES, EXITT);
-	HEADER(IMEDD + 1, "\\");
+	HEADER(IMEDD | 1, "\\");
 	int BKSLA = COLON(5, DOLIT, 0xA, WORDD, DROP, EXITT);
-	HEADER(IMEDD + 1, "(");
+	HEADER(IMEDD | 1, "(");
 	int PAREN = COLON(5, DOLIT, 0x29, PARSE, DDROP, EXITT);
 	HEADER(12, "COMPILE-ONLY");
 	int ONLY = COLON(6, DOLIT, 0x40, LAST, AT, PSTOR, EXITT);
