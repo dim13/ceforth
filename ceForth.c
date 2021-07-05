@@ -31,17 +31,20 @@
 #define	TRUE	-1
 #define	LOGICAL ? TRUE : FALSE
 #define LOWER(x,y) ((uint32_t)(x)<(uint32_t)(y))
-#define	pop	top = stack[S--]
-#define	push	stack[++S] = top; top =
-#define	popR	rack[R--]
-#define	pushR	rack[++R]
+#define	pop	top = stack[SP--]
+#define	push	stack[++SP] = top; top =
+#define	popR	rack[RP--]
+#define	pushR	rack[++RP]
 
 int32_t rack[256] = { 0 };
 int32_t stack[256] = { 0 };
-int8_t R = 0; // uint8_t
-int8_t S = 0; // uint8_t
+int8_t RP = 0; // Return Stack Pointer
+int8_t SP = 0; // Data Stack Pointer
 int32_t top = 0;
-int32_t  P, IP, WP, thread;
+int32_t UP; // User Area Pointer
+int32_t IP; // Interpreter Pointer
+int32_t WP; // Word or Work Pointer
+int32_t thread;
 int32_t data[16000] = {};
 uint8_t* cData = (uint8_t*)data;
 
@@ -72,8 +75,8 @@ txsto(void)
 void
 next(void)
 {
-	P = data[IP >> 2];
-	WP = P + 4;
+	UP = data[IP >> 2];
+	WP = UP + 4;
 	IP += 4;
 }
 
@@ -100,7 +103,7 @@ dolit(void)
 void
 dolist(void)
 {
-	rack[++R] = IP;
+	rack[++RP] = IP;
 	IP = WP;
 	next();
 }
@@ -108,27 +111,27 @@ dolist(void)
 void
 exitt(void)
 {
-	IP = (long)rack[R--];
+	IP = (long)rack[RP--];
 	next();
 }
 
 void
 execu(void)
 {
-	P = top;
-	WP = P + 4;
+	UP = top;
+	WP = UP + 4;
 	pop;
 }
 
 void
 donext(void)
 {
-	if (rack[R]) {
-		rack[R] -= 1;
+	if (rack[RP]) {
+		rack[RP] -= 1;
 		IP = data[IP >> 2];
 	} else {
 		IP += 4;
-		R--;
+		RP--;
 	}
 	next();
 }
@@ -155,7 +158,7 @@ bran(void)
 void
 store(void)
 {
-	data[top >> 2] = stack[S--];
+	data[top >> 2] = stack[SP--];
 	pop;
 }
 
@@ -168,7 +171,7 @@ at(void)
 void
 cstor(void)
 {
-	cData[top] = stack[S--];
+	cData[top] = stack[SP--];
 	pop;
 }
 
@@ -181,19 +184,19 @@ cat(void)
 void
 rfrom(void)
 {
-	push rack[R--];
+	push rack[RP--];
 }
 
 void
 rat(void)
 {
-	push rack[R];
+	push rack[RP];
 }
 
 void
 tor(void)
 {
-	rack[++R] = top;
+	rack[++RP] = top;
 	pop;
 }
 
@@ -206,21 +209,21 @@ drop(void)
 void
 dup(void)
 {
-	stack[++S] = top;
+	stack[++SP] = top;
 }
 
 void
 swap(void)
 {
 	WP = top;
-	top = stack[S];
-	stack[S] = WP;
+	top = stack[SP];
+	stack[SP] = WP;
 }
 
 void
 over(void)
 {
-	push stack[S - 1];
+	push stack[SP - 1];
 }
 
 void
@@ -232,26 +235,26 @@ zless(void)
 void
 andd(void)
 {
-	top &= stack[S--];
+	top &= stack[SP--];
 }
 
 void
 orr(void)
 {
-	top |= stack[S--];
+	top |= stack[SP--];
 }
 
 void
 xorr(void)
 {
-	top ^= stack[S--];
+	top ^= stack[SP--];
 }
 
 void
 uplus(void)
 {
-	stack[S] += top;
-	top = LOWER(stack[S], top);
+	stack[SP] += top;
+	top = LOWER(stack[SP], top);
 }
 
 void
@@ -264,16 +267,16 @@ void
 qdup(void)
 {
 	if (top) {
-		stack[++S] = top;
+		stack[++SP] = top;
 	}
 }
 
 void
 rot(void)
 {
-	WP = stack[S - 1];
-	stack[S - 1] = stack[S];
-	stack[S] = top;
+	WP = stack[SP - 1];
+	stack[SP - 1] = stack[SP];
+	stack[SP] = top;
 	top = WP;
 }
 
@@ -292,7 +295,7 @@ ddup(void)
 void
 plus(void)
 {
-	top += stack[S--];
+	top += stack[SP--];
 }
 
 void
@@ -322,7 +325,7 @@ dnega(void)
 void
 subb(void)
 {
-	top = stack[S--] - top;
+	top = stack[SP--] - top;
 }
 
 void
@@ -336,57 +339,57 @@ abss(void)
 void
 great(void)
 {
-	top = (stack[S--] > top) LOGICAL;
+	top = (stack[SP--] > top) LOGICAL;
 }
 
 void
 less(void)
 {
-	top = (stack[S--] < top) LOGICAL;
+	top = (stack[SP--] < top) LOGICAL;
 }
 
 void
 equal(void)
 {
-	top = (stack[S--] == top) LOGICAL;
+	top = (stack[SP--] == top) LOGICAL;
 }
 
 void
 uless(void)
 {
-	top = LOWER(stack[S], top) LOGICAL; S--;
+	top = LOWER(stack[SP], top) LOGICAL; SP--;
 }
 
 void
 ummod(void)
 {
 	int64_t d = (uint32_t)top;
-	int64_t m = (uint32_t)stack[S];
-	int64_t n = (uint32_t)stack[S - 1];
+	int64_t m = (uint32_t)stack[SP];
+	int64_t n = (uint32_t)stack[SP - 1];
 	n += m << 32;
 	pop;
 	top = (uint32_t)(n / d);
-	stack[S] = (uint32_t)(n % d);
+	stack[SP] = (uint32_t)(n % d);
 }
 
 void
 msmod(void)
 {
 	int64_t d = top;
-	int64_t m = stack[S];
-	int64_t n = stack[S - 1];
+	int64_t m = stack[SP];
+	int64_t n = stack[SP - 1];
 	n += m << 32;
 	pop;
 	top = (n / d);
-	stack[S] = (n % d);
+	stack[SP] = (n % d);
 }
 
 void
 slmod(void)
 {
 	if (top != 0) {
-		WP = stack[S] / top;
-		stack[S] %= top;
+		WP = stack[SP] / top;
+		stack[SP] %= top;
 		top = WP;
 	}
 }
@@ -394,59 +397,59 @@ slmod(void)
 void
 mod(void)
 {
-	top = (top) ? stack[S--] % top : stack[S--];
+	top = (top) ? stack[SP--] % top : stack[SP--];
 }
 
 void
 slash(void)
 {
-	top = (top) ? stack[S--] / top : (S--, 0);
+	top = (top) ? stack[SP--] / top : (SP--, 0);
 }
 
 void
 umsta(void)
 {
 	int64_t d = (uint32_t)top;
-	int64_t m = (uint32_t)stack[S];
+	int64_t m = (uint32_t)stack[SP];
 	m *= d;
 	top = (uint32_t)(m >> 32);
-	stack[S] = (uint32_t)m;
+	stack[SP] = (uint32_t)m;
 }
 
 void
 star(void)
 {
-	top *= stack[S--];
+	top *= stack[SP--];
 }
 
 void
 mstar(void)
 {
 	int64_t d = top;
-	int64_t m = stack[S];
+	int64_t m = stack[SP];
 	m *= d;
 	top = (m >> 32);
-	stack[S] = m;
+	stack[SP] = m;
 }
 
 void
 ssmod(void)
 {
 	int64_t d = top;
-	int64_t m = stack[S];
-	int64_t n = stack[S - 1];
+	int64_t m = stack[SP];
+	int64_t n = stack[SP - 1];
 	n *= m;
 	pop;
 	top = (n / d);
-	stack[S] = (n % d);
+	stack[SP] = (n % d);
 }
 
 void
 stasl(void)
 {
 	int64_t d = top;
-	int64_t m = stack[S];
-	int64_t n = stack[S - 1];
+	int64_t m = stack[SP];
+	int64_t n = stack[SP - 1];
 	n *= m;
 	pop; pop;
 	top = (n / d);
@@ -455,20 +458,20 @@ stasl(void)
 void
 pick(void)
 {
-	top = stack[S - top];
+	top = stack[SP - top];
 }
 
 void
 pstor(void)
 {
-	data[top >> 2] += stack[S--], pop;
+	data[top >> 2] += stack[SP--], pop;
 }
 
 void
 dstor(void)
 {
-	data[(top >> 2) + 1] = stack[S--];
-	data[top >> 2] = stack[S--];
+	data[(top >> 2) + 1] = stack[SP--];
+	data[top >> 2] = stack[SP--];
 	pop;
 }
 
@@ -482,25 +485,25 @@ dat(void)
 void
 count(void)
 {
-	stack[++S] = top + 1;
+	stack[++SP] = top + 1;
 	top = cData[top];
 }
 
 void
 max(void)
 {
-	if (top < stack[S]) {
+	if (top < stack[SP]) {
 		pop;
 	} else {
-		S--;
+		SP--;
 	}
 }
 
 void
 min(void)
 {
-	if (top < stack[S]) {
-		S--;
+	if (top < stack[SP]) {
+		SP--;
 	} else {
 		pop;
 	}
@@ -594,29 +597,29 @@ int BRAN = 0, QBRAN = 0, DONXT = 0, DOTQP = 0, STRQP = 0, TOR = 0, ABORQP = 0;
 void
 HEADER(int lex, const char seq[])
 {
-	IP = P >> 2;
+	IP = UP >> 2;
 	int i;
 	int len = lex & 31;
 	data[IP++] = thread;
-	P = IP << 2;
-	thread = P;
-	cData[P++] = lex;
+	UP = IP << 2;
+	thread = UP;
+	cData[UP++] = lex;
 	for (i = 0; i < len; i++) {
-		cData[P++] = seq[i];
+		cData[UP++] = seq[i];
 	}
-	while (P & 3) {
-		cData[P++] = 0;
+	while (UP & 3) {
+		cData[UP++] = 0;
 	}
 }
 
 int
 CODE(int len, ...)
 {
-	int addr = P;
+	int addr = UP;
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
-		cData[P++] = va_arg(argList, int);
+		cData[UP++] = va_arg(argList, int);
 	}
 	va_end(argList);
 	return addr;
@@ -625,15 +628,15 @@ CODE(int len, ...)
 int
 COLON(int len, ...)
 {
-	int addr = P;
-	IP = P >> 2;
+	int addr = UP;
+	IP = UP >> 2;
 	data[IP++] = as_dolist; // dolist
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
 		data[IP++] = va_arg(argList, int);
 	}
-	P = IP << 2;
+	UP = IP << 2;
 	va_end(argList);
 	return addr;
 }
@@ -641,14 +644,14 @@ COLON(int len, ...)
 int
 LABEL(int len, ...)
 {
-	int addr = P;
-	IP = P >> 2;
+	int addr = UP;
+	IP = UP >> 2;
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
 		data[IP++] = va_arg(argList, int);
 	}
-	P = IP << 2;
+	UP = IP << 2;
 	va_end(argList);
 	return addr;
 }
@@ -656,21 +659,21 @@ LABEL(int len, ...)
 void
 BEGIN(int len, ...)
 {
-	IP = P >> 2;
+	IP = UP >> 2;
 	pushR = IP;
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
 		data[IP++] = va_arg(argList, int);
 	}
-	P = IP << 2;
+	UP = IP << 2;
 	va_end(argList);
 }
 
 void
 AGAIN(int len, ...)
 {
-	IP = P >> 2;
+	IP = UP >> 2;
 	data[IP++] = BRAN;
 	data[IP++] = popR << 2;
 	va_list argList;
@@ -678,14 +681,14 @@ AGAIN(int len, ...)
 	for (; len; len--) {
 		data[IP++] = va_arg(argList, int);
 	}
-	P = IP << 2;
+	UP = IP << 2;
 	va_end(argList);
 }
 
 void
 UNTIL(int len, ...)
 {
-	IP = P >> 2;
+	IP = UP >> 2;
 	data[IP++] = QBRAN;
 	data[IP++] = popR << 2;
 	va_list argList;
@@ -693,14 +696,14 @@ UNTIL(int len, ...)
 	for (; len; len--) {
 		data[IP++] = va_arg(argList, int);
 	}
-	P = IP << 2;
+	UP = IP << 2;
 	va_end(argList);
 }
 
 void
 WHILE(int len, ...)
 {
-	IP = P >> 2;
+	IP = UP >> 2;
 	int k;
 	data[IP++] = QBRAN;
 	data[IP++] = 0;
@@ -712,14 +715,14 @@ WHILE(int len, ...)
 	for (; len; len--) {
 		data[IP++] = va_arg(argList, int);
 	}
-	P = IP << 2;
+	UP = IP << 2;
 	va_end(argList);
 }
 
 void
 REPEAT(int len, ...)
 {
-	IP = P >> 2;
+	IP = UP >> 2;
 	data[IP++] = BRAN;
 	data[IP++] = popR << 2;
 	data[popR] = IP << 2;
@@ -728,14 +731,14 @@ REPEAT(int len, ...)
 	for (; len; len--) {
 		data[IP++] = va_arg(argList, int);
 	}
-	P = IP << 2;
+	UP = IP << 2;
 	va_end(argList);
 }
 
 void
 IF(int len, ...)
 {
-	IP = P >> 2;
+	IP = UP >> 2;
 	data[IP++] = QBRAN;
 	pushR = IP;
 	data[IP++] = 0;
@@ -744,14 +747,14 @@ IF(int len, ...)
 	for (; len; len--) {
 		data[IP++] = va_arg(argList, int);
 	}
-	P = IP << 2;
+	UP = IP << 2;
 	va_end(argList);
 }
 
 void
 ELSE(int len, ...)
 {
-	IP = P >> 2;
+	IP = UP >> 2;
 	data[IP++] = BRAN;
 	data[IP++] = 0;
 	data[popR] = IP << 2;
@@ -761,28 +764,28 @@ ELSE(int len, ...)
 	for (; len; len--) {
 		data[IP++] = va_arg(argList, int);
 	}
-	P = IP << 2;
+	UP = IP << 2;
 	va_end(argList);
 }
 
 void
 THEN(int len, ...)
 {
-	IP = P >> 2;
+	IP = UP >> 2;
 	data[popR] = IP << 2;
 	va_list argList;
 	va_start(argList, len);
 	for (; len; len--) {
 		data[IP++] = va_arg(argList, int);
 	}
-	P = IP << 2;
+	UP = IP << 2;
 	va_end(argList);
 }
 
 void
 FOR(int len, ...)
 {
-	IP = P >> 2;
+	IP = UP >> 2;
 	data[IP++] = TOR;
 	pushR = IP;
 	va_list argList;
@@ -790,14 +793,14 @@ FOR(int len, ...)
 	for (; len; len--) {
 		data[IP++] = va_arg(argList, int);
 	}
-	P = IP << 2;
+	UP = IP << 2;
 	va_end(argList);
 }
 
 void
 NEXT(int len, ...)
 {
-	IP = P >> 2;
+	IP = UP >> 2;
 	data[IP++] = DONXT;
 	data[IP++] = popR << 2;
 	va_list argList;
@@ -805,14 +808,14 @@ NEXT(int len, ...)
 	for (; len; len--) {
 		data[IP++] = va_arg(argList, int);
 	}
-	P = IP << 2;
+	UP = IP << 2;
 	va_end(argList);
 }
 
 void
 AFT(int len, ...)
 {
-	IP = P >> 2;
+	IP = UP >> 2;
 	int k;
 	data[IP++] = BRAN;
 	data[IP++] = 0;
@@ -824,58 +827,58 @@ AFT(int len, ...)
 	for (; len; len--) {
 		data[IP++] = va_arg(argList, int);
 	}
-	P = IP << 2;
+	UP = IP << 2;
 	va_end(argList);
 }
 
 void
 DOTQ(const char seq[])
 {
-	IP = P >> 2;
+	IP = UP >> 2;
 	int i;
 	int len = strlen(seq);
 	data[IP++] = DOTQP;
-	P = IP << 2;
-	cData[P++] = len;
+	UP = IP << 2;
+	cData[UP++] = len;
 	for (i = 0; i < len; i++) {
-		cData[P++] = seq[i];
+		cData[UP++] = seq[i];
 	}
-	while (P & 3) {
-		cData[P++] = 0;
+	while (UP & 3) {
+		cData[UP++] = 0;
 	}
 }
 
 void
 STRQ(const char seq[])
 {
-	IP = P >> 2;
+	IP = UP >> 2;
 	int i;
 	int len = strlen(seq);
 	data[IP++] = STRQP;
-	P = IP << 2;
-	cData[P++] = len;
+	UP = IP << 2;
+	cData[UP++] = len;
 	for (i = 0; i < len; i++) {
-		cData[P++] = seq[i];
+		cData[UP++] = seq[i];
 	}
-	while (P & 3) {
-		cData[P++] = 0;
+	while (UP & 3) {
+		cData[UP++] = 0;
 	}
 }
 
 void
 ABORQ(const char seq[])
 {
-	IP = P >> 2;
+	IP = UP >> 2;
 	int i;
 	int len = strlen(seq);
 	data[IP++] = ABORQP;
-	P = IP << 2;
-	cData[P++] = len;
+	UP = IP << 2;
+	cData[UP++] = len;
 	for (i = 0; i < len; i++) {
-		cData[P++] = seq[i];
+		cData[UP++] = seq[i];
 	}
-	while (P & 3) {
-		cData[P++] = 0;
+	while (UP & 3) {
+		cData[UP++] = 0;
 	}
 }
 
@@ -886,8 +889,8 @@ ABORQ(const char seq[])
 int
 main(int ac, char* av[])
 {
-	P = 512;
-	R = 0;
+	UP = 512;
+	RP = 0;
 
 	// Kernel
 
@@ -1445,24 +1448,24 @@ main(int ac, char* av[])
 	int ONLY = COLON(6, DOLIT, 0x40, LAST, AT, PSTOR, EXITT);
 	HEADER(9, "IMMEDIATE");
 	int IMMED = COLON(6, DOLIT, 0x80, LAST, AT, PSTOR, EXITT);
-	int ENDD = P;
+	int ENDD = UP;
 
 	// Boot Up
 
-	printf("\n\nIZ=%X R-stack=%X", P, (popR << 2));
-	P = 0;
+	printf("\n\nIZ=%X R-stack=%X", UP, (popR << 2));
+	UP = 0;
 	int RESET = LABEL(2, 6, COLD);
-	P = 0x90;
+	UP = 0x90;
 	int USER = LABEL(8, 0x100, 0x10, IMMED - 12, ENDD, IMMED - 12, INTER, QUITT, 0);
 
-	P = 0;
+	UP = 0;
 	WP = 4;
 	IP = 0;
-	S = 0;
-	R = 0;
+	SP = 0;
+	RP = 0;
 	top = 0;
 	printf("\nceForth v3.3, 01jul19cht\n");
 	for (;;) {
-		primitives[cData[P++]]();
+		primitives[cData[UP++]]();
 	}
 }
