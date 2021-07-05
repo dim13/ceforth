@@ -59,7 +59,7 @@ bye(void)
 void
 qrx(void)
 {
-	push(long) getchar();
+	push getchar();
 	if (top != 0) {
 		push TRUE;
 	}
@@ -111,7 +111,7 @@ dolist(void)
 void
 exitt(void)
 {
-	IP = (long)rack[RP--];
+	IP = rack[RP--];
 	next();
 }
 
@@ -178,7 +178,7 @@ cstor(void)
 void
 cat(void)
 {
-	top = (long)cData[top];
+	top = cData[top];
 }
 
 void
@@ -397,13 +397,22 @@ slmod(void)
 void
 mod(void)
 {
-	top = (top) ? stack[SP--] % top : stack[SP--];
+	if (top != 0) {
+		top = stack[SP--] % top;
+	} else {
+		top = stack[SP--];
+	}
 }
 
 void
 slash(void)
 {
-	top = (top) ? stack[SP--] / top : (SP--, 0);
+	if (top != 0) {
+		top = stack[SP--] / top;
+	} else {
+		SP--;
+		top = 0;
+	}
 }
 
 void
