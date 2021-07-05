@@ -376,71 +376,83 @@ void min(void)
 	else pop;
 }
 
+// Byte Code Assembler
+enum  {
+	as_nop, as_bye, as_qrx, as_txsto, as_docon, as_dolit, as_dolist, as_exit,
+	as_execu, as_donext, as_qbran, as_bran, as_store, as_at, as_cstor, as_cat,
+	as_rpat, as_rpsto, as_rfrom, as_rat, as_tor, as_spat, as_spsto, as_drop,
+	as_dup, as_swap, as_over, as_zless, as_andd, as_orr, as_xorr, as_uplus,
+	as_next, as_qdup, as_rot, as_ddrop, as_ddup, as_plus, as_inver, as_negat,
+	as_dnega, as_subb, as_abss, as_equal, as_uless, as_less, as_ummod, as_msmod,
+	as_slmod, as_mod, as_slash, as_umsta, as_star, as_mstar, as_ssmod, as_stasl,
+	as_pick, as_pstor, as_dstor, as_dat, as_count, as_dovar, as_max, as_min,
+};
+
 void(*primitives[64])(void) = {
-	/* case 0 */ nop,
-	/* case 1 */ bye,
-	/* case 2 */ qrx,
-	/* case 3 */ txsto,
-	/* case 4 */ docon,
-	/* case 5 */ dolit,
-	/* case 6 */ dolist,
-	/* case 7 */ exitt,
-	/* case 8 */ execu,
-	/* case 9 */ donext,
-	/* case 10 */ qbran,
-	/* case 11 */ bran,
-	/* case 12 */ store,
-	/* case 13 */ at,
-	/* case 14 */ cstor,
-	/* case 15 */ cat,
-	/* case 16  rpat, */ nop,
-	/* case 17  rpsto, */ nop,
-	/* case 18 */ rfrom,
-	/* case 19 */ rat,
-	/* case 20 */ tor,
-	/* case 21 spat, */ nop,
-	/* case 22 spsto, */ nop,
-	/* case 23 */ drop,
-	/* case 24 */ dup,
-	/* case 25 */ swap,
-	/* case 26 */ over,
-	/* case 27 */ zless,
-	/* case 28 */ andd,
-	/* case 29 */ orr,
-	/* case 30 */ xorr,
-	/* case 31 */ uplus,
-	/* case 32 */ next,
-	/* case 33 */ qdup,
-	/* case 34 */ rot,
-	/* case 35 */ ddrop,
-	/* case 36 */ ddup,
-	/* case 37 */ plus,
-	/* case 38 */ inver,
-	/* case 39 */ negat,
-	/* case 40 */ dnega,
-	/* case 41 */ subb,
-	/* case 42 */ abss,
-	/* case 43 */ equal,
-	/* case 44 */ uless,
-	/* case 45 */ less,
-	/* case 46 */ ummod,
-	/* case 47 */ msmod,
-	/* case 48 */ slmod,
-	/* case 49 */ mod,
-	/* case 50 */ slash,
-	/* case 51 */ umsta,
-	/* case 52 */ star,
-	/* case 53 */ mstar,
-	/* case 54 */ ssmod,
-	/* case 55 */ stasl,
-	/* case 56 */ pick,
-	/* case 57 */ pstor,
-	/* case 58 */ dstor,
-	/* case 59 */ dat,
-	/* case 60 */ count,
-	/* case 61 */ dovar,
-	/* case 62 */ max,
-	/* case 63 */ min,
+	[as_nop] = nop,
+	[as_bye] = bye,
+	[as_qrx] = qrx,
+	[as_txsto] = txsto,
+	[as_docon] = docon,
+	[as_dolit] = dolit,
+	[as_dolist] = dolist,
+	[as_exit] = exitt,
+	[as_execu] = execu,
+	[as_donext] = donext,
+	[as_qbran] = qbran,
+	[as_bran] = bran,
+	[as_store] = store,
+	[as_at] = at,
+	[as_cstor] = cstor,
+	[as_cat] = cat,
+	[as_rpat] = nop,
+	[as_rpsto] = nop,
+	[as_rfrom] = rfrom,
+	[as_rat] = rat,
+	[as_tor] = tor,
+	[as_spat] = nop,
+	[as_spsto] = nop,
+	[as_drop] = drop,
+	[as_dup] = dup,
+	[as_swap] = swap,
+	[as_over] = over,
+	[as_zless] = zless,
+	[as_andd] = andd,
+	[as_orr] = orr,
+	[as_xorr] = xorr,
+	[as_uplus] = uplus,
+	[as_next] = next,
+	[as_qdup] = qdup,
+	[as_rot] = rot,
+	[as_ddrop] = ddrop,
+	[as_ddup] = ddup,
+	[as_plus] = plus,
+	[as_inver] = inver,
+	[as_negat] = negat,
+	[as_dnega] = dnega,
+	[as_subb] = subb,
+	[as_abss] = abss,
+	[as_equal] = equal,
+	[as_uless] = uless,
+	[as_less] = less,
+	[as_ummod] = ummod,
+	[as_msmod] = msmod,
+	[as_slmod] = slmod,
+	[as_mod] = mod,
+	[as_slash] = slash,
+	[as_umsta] = umsta,
+	[as_star] = star,
+	[as_mstar] = mstar,
+	[as_ssmod] = ssmod,
+	[as_stasl] = stasl,
+	[as_pick] = pick,
+	[as_pstor] = pstor,
+	[as_dstor] = dstor,
+	[as_dat] = dat,
+	[as_count] = count,
+	[as_dovar] = dovar,
+	[as_max] = max,
+	[as_min] = min,
 };
 
 // Macro Assembler
@@ -465,9 +477,9 @@ void HEADER(int lex, const char seq[]) {
 		cData[P++] = seq[i];
 	}
 	while (P & 3) { cData[P++] = 0; }
-	printf("\n");
-	printf("%s", seq);
-	printf(" %X", P);
+	//printf("\n");
+	//printf("%s", seq);
+	//printf(" %X", P);
 }
 int CODE(int len, ...) {
 	int addr = P;
@@ -484,7 +496,7 @@ int CODE(int len, ...) {
 int COLON(int len, ...) {
 	int addr = P;
 	IP = P >> 2;
-	data[IP++] = 6; // dolist
+	data[IP++] = as_dolist; // dolist
 	va_list argList;
 	va_start(argList, len);
 	//printf(" %X ",6);
@@ -743,73 +755,6 @@ void CheckSum() {
 	}
 	printf(" %2X", sum & 0xFF);
 }
-
-// Byte Code Assembler
-
-int as_nop = 0;
-int as_bye = 1;
-int as_qrx = 2;
-int as_txsto = 3;
-int as_docon = 4;
-int as_dolit = 5;
-int as_dolist = 6;
-int as_exit = 7;
-int as_execu = 8;
-int as_donext = 9;
-int as_qbran = 10;
-int as_bran = 11;
-int as_store = 12;
-int as_at = 13;
-int as_cstor = 14;
-int as_cat = 15;
-int as_rpat = 16;
-int as_rpsto = 17;
-int as_rfrom = 18;
-int as_rat = 19;
-int as_tor = 20;
-int as_spat = 21;
-int as_spsto = 22;
-int as_drop = 23;
-int as_dup = 24;
-int as_swap = 25;
-int as_over = 26;
-int as_zless = 27;
-int as_andd = 28;
-int as_orr = 29;
-int as_xorr = 30;
-int as_uplus = 31;
-int as_next = 32;
-int as_qdup = 33;
-int as_rot = 34;
-int as_ddrop = 35;
-int as_ddup = 36;
-int as_plus = 37;
-int as_inver = 38;
-int as_negat = 39;
-int as_dnega = 40;
-int as_subb = 41;
-int as_abss = 42;
-int as_equal = 43;
-int as_uless = 44;
-int as_less = 45;
-int as_ummod = 46;
-int as_msmod = 47;
-int as_slmod = 48;
-int as_mod = 49;
-int as_slash = 50;
-int as_umsta = 51;
-int as_star = 52;
-int as_mstar = 53;
-int as_ssmod = 54;
-int as_stasl = 55;
-int as_pick = 56;
-int as_pstor = 57;
-int as_dstor = 58;
-int as_dat = 59;
-int as_count = 60;
-int as_dovar = 61;
-int as_max = 62;
-int as_min = 63;
 
 /*
 * Main Program
@@ -1386,7 +1331,7 @@ int main(int ac, char* av[])
 	int USER = LABEL(8, 0x100, 0x10, IMMED - 12, ENDD, IMMED - 12, INTER, QUITT, 0);
 	// dump dictionary
 	//P = 0;
-	//for (len = 0; len < 0x200; len++) { CheckSum(); }
+	//for (int len = 0; len < 0x200; len++) { CheckSum(); }
 
 	P = 0;
 	WP = 4;
