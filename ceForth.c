@@ -19,7 +19,7 @@
 /* Case insensitive interpreter                                               */
 /* data[] must be filled with rom_21.h eForth dictionary                      */
 /*   from c:/F#/ceforth_21                                                    */
-/* C compiler must be reminded that S and R are (char)                        */
+/* C compiler must be reminded that S and R are                         */
 /******************************************************************************/
 
 //Preamble
@@ -28,27 +28,26 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdint.h>
 
 # define	FALSE	0
 # define	TRUE	-1
 # define	LOGICAL ? TRUE : FALSE
-# define 	LOWER(x,y) ((unsigned long)(x)<(unsigned long)(y))
-# define	pop	top = stack[(char) S--]
-# define	push	stack[(char) ++S] = top; top =
-# define	popR rack[(unsigned char)R--]
-# define	pushR rack[(unsigned char)++R]
+# define 	LOWER(x,y) ((uint32_t)(x)<(uint32_t)(y))
+# define	pop	top = stack[S--]
+# define	push	stack[++S] = top; top =
+# define	popR rack[R--]
+# define	pushR rack[++R]
 
-long rack[256] = { 0 };
-long stack[256] = { 0 };
-long long int d, n, m;
-unsigned char R = 0;
-unsigned char S = 0;
-long top = 0;
-long  P, IP, WP, thread, len;
-unsigned char bytecode, c;
+int32_t rack[256] = { 0 };
+int32_t stack[256] = { 0 };
+int8_t R = 0; // uint8_t
+int8_t S = 0; // uint8_t
+int32_t top = 0;
+int32_t  P, IP, WP, thread;
 
-long data[16000] = {};
-unsigned char* cData = (unsigned char*)data;
+int32_t data[16000] = {};
+uint8_t* cData = (uint8_t*)data;
 
 // Virtual Forth Machine
 
@@ -63,7 +62,7 @@ void qrx(void)
 }
 void txsto(void)
 {
-	putchar((char)top);
+	putchar(top);
 	pop;
 }
 void next(void)
@@ -88,13 +87,13 @@ void dolit(void)
 }
 void dolist(void)
 {
-	rack[(char)++R] = IP;
+	rack[++R] = IP;
 	IP = WP;
 	next();
 }
 void exitt(void)
 {
-	IP = (long)rack[(char)R--];
+	IP = (long)rack[R--];
 	next();
 }
 void execu(void)
@@ -105,8 +104,8 @@ void execu(void)
 }
 void donext(void)
 {
-	if (rack[(char)R]) {
-		rack[(char)R] -= 1;
+	if (rack[R]) {
+		rack[R] -= 1;
 		IP = data[IP >> 2];
 	}
 	else {
@@ -129,7 +128,7 @@ void bran(void)
 }
 void store(void)
 {
-	data[top >> 2] = stack[(char)S--];
+	data[top >> 2] = stack[S--];
 	pop;
 }
 void at(void)
@@ -138,7 +137,7 @@ void at(void)
 }
 void cstor(void)
 {
-	cData[top] = (char)stack[(char)S--];
+	cData[top] = stack[S--];
 	pop;
 }
 void cat(void)
@@ -147,15 +146,15 @@ void cat(void)
 }
 void rfrom(void)
 {
-	push rack[(char)R--];
+	push rack[R--];
 }
 void rat(void)
 {
-	push rack[(char)R];
+	push rack[R];
 }
 void tor(void)
 {
-	rack[(char)++R] = top;
+	rack[++R] = top;
 	pop;
 }
 void drop(void)
@@ -164,17 +163,17 @@ void drop(void)
 }
 void dup(void)
 {
-	stack[(char) ++S] = top;
+	stack[++S] = top;
 }
 void swap(void)
 {
 	WP = top;
-	top = stack[(char)S];
-	stack[(char)S] = WP;
+	top = stack[S];
+	stack[S] = WP;
 }
 void over(void)
 {
-	push stack[(char)S - 1];
+	push stack[S - 1];
 }
 void zless(void)
 {
@@ -182,20 +181,20 @@ void zless(void)
 }
 void andd(void)
 {
-	top &= stack[(char)S--];
+	top &= stack[S--];
 }
 void orr(void)
 {
-	top |= stack[(char)S--];
+	top |= stack[S--];
 }
 void xorr(void)
 {
-	top ^= stack[(char)S--];
+	top ^= stack[S--];
 }
 void uplus(void)
 {
-	stack[(char)S] += top;
-	top = LOWER(stack[(char)S], top);
+	stack[S] += top;
+	top = LOWER(stack[S], top);
 }
 void nop(void)
 {
@@ -203,13 +202,13 @@ void nop(void)
 }
 void qdup(void)
 {
-	if (top) stack[(char) ++S] = top;
+	if (top) stack[++S] = top;
 }
 void rot(void)
 {
-	WP = stack[(char)S - 1];
-	stack[(char)S - 1] = stack[(char)S];
-	stack[(char)S] = top;
+	WP = stack[S - 1];
+	stack[S - 1] = stack[S];
+	stack[S] = top;
 	top = WP;
 }
 void ddrop(void)
@@ -222,7 +221,7 @@ void ddup(void)
 }
 void plus(void)
 {
-	top += stack[(char)S--];
+	top += stack[S--];
 }
 void inver(void)
 {
@@ -244,7 +243,7 @@ void dnega(void)
 }
 void subb(void)
 {
-	top = stack[(char)S--] - top;
+	top = stack[S--] - top;
 }
 void abss(void)
 {
@@ -253,107 +252,107 @@ void abss(void)
 }
 void great(void)
 {
-	top = (stack[(char)S--] > top) LOGICAL;
+	top = (stack[S--] > top) LOGICAL;
 }
 void less(void)
 {
-	top = (stack[(char)S--] < top) LOGICAL;
+	top = (stack[S--] < top) LOGICAL;
 }
 void equal(void)
 {
-	top = (stack[(char)S--] == top) LOGICAL;
+	top = (stack[S--] == top) LOGICAL;
 }
 void uless(void)
 {
-	top = LOWER(stack[(char)S], top) LOGICAL; S--;
+	top = LOWER(stack[S], top) LOGICAL; S--;
 }
 void ummod(void)
 {
-	d = (long long int)((unsigned long)top);
-	m = (long long int)((unsigned long)stack[(char)S]);
-	n = (long long int)((unsigned long)stack[(char)S - 1]);
+	int64_t d = (uint32_t)top;
+	int64_t m = (uint32_t)stack[S];
+	int64_t n = (uint32_t)stack[S - 1];
 	n += m << 32;
 	pop;
-	top = (unsigned long)(n / d);
-	stack[(char)S] = (unsigned long)(n % d);
+	top = (uint32_t)(n / d);
+	stack[S] = (uint32_t)(n % d);
 }
 void msmod(void)
 {
-	d = (signed long long int)((signed long)top);
-	m = (signed long long int)((signed long)stack[(char)S]);
-	n = (signed long long int)((signed long)stack[(char)S - 1]);
+	int64_t d = top;
+	int64_t m = stack[S];
+	int64_t n = stack[S - 1];
 	n += m << 32;
 	pop;
-	top = (signed long)(n / d);
-	stack[(char)S] = (signed long)(n % d);
+	top = (n / d);
+	stack[S] = (n % d);
 }
 void slmod(void)
 {
 	if (top != 0) {
-		WP = stack[(char)S] / top;
-		stack[(char)S] %= top;
+		WP = stack[S] / top;
+		stack[S] %= top;
 		top = WP;
 	}
 }
 void mod(void)
 {
-	top = (top) ? stack[(char)S--] % top : stack[(char)S--];
+	top = (top) ? stack[S--] % top : stack[S--];
 }
 void slash(void)
 {
-	top = (top) ? stack[(char)S--] / top : (S--, 0);
+	top = (top) ? stack[S--] / top : (S--, 0);
 }
 void umsta(void)
 {
-	d = (unsigned long long int)top;
-	m = (unsigned long long int)stack[(char)S];
+	int64_t d = (uint32_t)top;
+	int64_t m = (uint32_t)stack[S];
 	m *= d;
-	top = (unsigned long)(m >> 32);
-	stack[(char)S] = (unsigned long)m;
+	top = (uint32_t)(m >> 32);
+	stack[S] = (uint32_t)m;
 }
 void star(void)
 {
-	top *= stack[(char)S--];
+	top *= stack[S--];
 }
 void mstar(void)
 {
-	d = (signed long long int)top;
-	m = (signed long long int)stack[(char)S];
+	int64_t d = top;
+	int64_t m = stack[S];
 	m *= d;
-	top = (signed long)(m >> 32);
-	stack[(char)S] = (signed long)m;
+	top = (m >> 32);
+	stack[S] = m;
 }
 void ssmod(void)
 {
-	d = (signed long long int)top;
-	m = (signed long long int)stack[(char)S];
-	n = (signed long long int)stack[(char)S - 1];
+	int64_t d = top;
+	int64_t m = stack[S];
+	int64_t n = stack[S - 1];
 	n *= m;
 	pop;
-	top = (signed long)(n / d);
-	stack[(char)S] = (signed long)(n % d);
+	top = (n / d);
+	stack[S] = (n % d);
 }
 void stasl(void)
 {
-	d = (signed long long int)top;
-	m = (signed long long int)stack[(char)S];
-	n = (signed long long int)stack[(char)S - 1];
+	int64_t d = top;
+	int64_t m = stack[S];
+	int64_t n = stack[S - 1];
 	n *= m;
 	pop; pop;
-	top = (signed long)(n / d);
+	top = (n / d);
 }
 void pick(void)
 {
-	top = stack[(char)S - (char)top];
+	top = stack[S - top];
 }
 void pstor(void)
 {
-	data[top >> 2] += stack[(char)S--], pop;
+	data[top >> 2] += stack[S--], pop;
 }
 void dstor(void)
 {
-	data[(top >> 2) + 1] = stack[(char)S--];
-	data[top >> 2] = stack[(char)S--];
+	data[(top >> 2) + 1] = stack[S--];
+	data[top >> 2] = stack[S--];
 	pop;
 }
 void dat(void)
@@ -363,17 +362,17 @@ void dat(void)
 }
 void count(void)
 {
-	stack[(char) ++S] = top + 1;
+	stack[++S] = top + 1;
 	top = cData[top];
 }
 void max(void)
 {
-	if (top < stack[(char)S]) pop;
+	if (top < stack[S]) pop;
 	else S--;
 }
 void min(void)
 {
-	if (top < stack[(char)S]) S--;
+	if (top < stack[S])  S--;
 	else pop;
 }
 
@@ -468,7 +467,7 @@ void HEADER(int lex, const char seq[]) {
 	while (P & 3) { cData[P++] = 0; }
 	printf("\n");
 	printf("%s", seq);
-	printf(" %lX", P);
+	printf(" %X", P);
 }
 int CODE(int len, ...) {
 	int addr = P;
@@ -737,12 +736,12 @@ void ABORQ(const char seq[]) {
 void CheckSum() {
 	int i;
 	char sum = 0;
-	printf("\n%4lX ", P);
+	printf("\n%4X ", P);
 	for (i = 0; i < 16; i++) {
 		sum += cData[P];
 		printf("%2X", cData[P++]);
 	}
-	printf(" %2X", sum & 0XFF);
+	printf(" %2X", sum & 0xFF);
 }
 
 // Byte Code Assembler
@@ -817,36 +816,35 @@ int as_min = 63;
 */
 int main(int ac, char* av[])
 {
-	cData = (unsigned char*)data;
 	P = 512;
 	R = 0;
 
 	// Kernel
 
 	HEADER(3, "HLD");
-	int HLD = CODE(8, as_docon, as_next, 0, 0, 0X80, 0, 0, 0);
+	int HLD = CODE(8, as_docon, as_next, 0, 0, 0x80, 0, 0, 0);
 	HEADER(4, "SPAN");
-	int SPAN = CODE(8, as_docon, as_next, 0, 0, 0X84, 0, 0, 0);
+	int SPAN = CODE(8, as_docon, as_next, 0, 0, 0x84, 0, 0, 0);
 	HEADER(3, ">IN");
-	int INN = CODE(8, as_docon, as_next, 0, 0, 0X88, 0, 0, 0);
+	int INN = CODE(8, as_docon, as_next, 0, 0, 0x88, 0, 0, 0);
 	HEADER(4, "#TIB");
-	int NTIB = CODE(8, as_docon, as_next, 0, 0, 0X8C, 0, 0, 0);
+	int NTIB = CODE(8, as_docon, as_next, 0, 0, 0x8C, 0, 0, 0);
 	HEADER(4, "'TIB");
-	int TTIB = CODE(8, as_docon, as_next, 0, 0, 0X90, 0, 0, 0);
+	int TTIB = CODE(8, as_docon, as_next, 0, 0, 0x90, 0, 0, 0);
 	HEADER(4, "BASE");
-	int BASE = CODE(8, as_docon, as_next, 0, 0, 0X94, 0, 0, 0);
+	int BASE = CODE(8, as_docon, as_next, 0, 0, 0x94, 0, 0, 0);
 	HEADER(7, "CONTEXT");
-	int CNTXT = CODE(8, as_docon, as_next, 0, 0, 0X98, 0, 0, 0);
+	int CNTXT = CODE(8, as_docon, as_next, 0, 0, 0x98, 0, 0, 0);
 	HEADER(2, "CP");
-	int CP = CODE(8, as_docon, as_next, 0, 0, 0X9C, 0, 0, 0);
+	int CP = CODE(8, as_docon, as_next, 0, 0, 0x9C, 0, 0, 0);
 	HEADER(4, "LAST");
-	int LAST = CODE(8, as_docon, as_next, 0, 0, 0XA0, 0, 0, 0);
+	int LAST = CODE(8, as_docon, as_next, 0, 0, 0xA0, 0, 0, 0);
 	HEADER(5, "'EVAL");
-	int TEVAL = CODE(8, as_docon, as_next, 0, 0, 0XA4, 0, 0, 0);
+	int TEVAL = CODE(8, as_docon, as_next, 0, 0, 0xA4, 0, 0, 0);
 	HEADER(6, "'ABORT");
-	int TABRT = CODE(8, as_docon, as_next, 0, 0, 0XA8, 0, 0, 0);
+	int TABRT = CODE(8, as_docon, as_next, 0, 0, 0xA8, 0, 0, 0);
 	HEADER(3, "tmp");
-	int TEMP = CODE(8, as_docon, as_next, 0, 0, 0XAC, 0, 0, 0);
+	int TEMP = CODE(8, as_docon, as_next, 0, 0, 0xAC, 0, 0, 0);
 
 	HEADER(3, "NOP");
 	int NOP = CODE(4, as_next, 0, 0, 0);
@@ -998,15 +996,15 @@ int main(int ac, char* av[])
 	HEADER(6, "WITHIN");
 	int WITHI = COLON(7, OVER, SUBBB, TOR, SUBBB, RFROM, ULESS, EXITT);
 	HEADER(5, ">CHAR");
-	int TCHAR = COLON(8, DOLIT, 0x7F, ANDD, DUPP, DOLIT, 0X7F, BLANK, WITHI);
-	IF(3, DROP, DOLIT, 0X5F);
+	int TCHAR = COLON(8, DOLIT, 0x7F, ANDD, DUPP, DOLIT, 0x7F, BLANK, WITHI);
+	IF(3, DROP, DOLIT, 0x5F);
 	THEN(1, EXITT);
 	HEADER(7, "ALIGNED");
-	int ALIGN = COLON(7, DOLIT, 3, PLUS, DOLIT, 0XFFFFFFFC, ANDD, EXITT);
+	int ALIGN = COLON(7, DOLIT, 3, PLUS, DOLIT, 0xFFFFFFFC, ANDD, EXITT);
 	HEADER(4, "HERE");
 	int HERE = COLON(3, CP, AT, EXITT);
 	HEADER(3, "PAD");
-	int PAD = COLON(5, HERE, DOLIT, 0X50, PLUS, EXITT);
+	int PAD = COLON(5, HERE, DOLIT, 0x50, PLUS, EXITT);
 	HEADER(3, "TIB");
 	int TIB = COLON(3, TTIB, AT, EXITT);
 	HEADER(8, "@EXECUTE");
@@ -1035,7 +1033,7 @@ int main(int ac, char* av[])
 	// Number Conversions
 
 	HEADER(5, "DIGIT");
-	int DIGIT = COLON(12, DOLIT, 9, OVER, LESS, DOLIT, 7, ANDD, PLUS, DOLIT, 0X30, PLUS, EXITT);
+	int DIGIT = COLON(12, DOLIT, 9, OVER, LESS, DOLIT, 7, ANDD, PLUS, DOLIT, 0x30, PLUS, EXITT);
 	HEADER(7, "EXTRACT");
 	int EXTRC = COLON(7, DOLIT, 0, SWAP, UMMOD, SWAP, DIGIT, EXITT);
 	HEADER(2, "<#");
@@ -1051,7 +1049,7 @@ int main(int ac, char* av[])
 	REPEAT(1, EXITT);
 	HEADER(4, "SIGN");
 	int SIGN = COLON(1, ZLESS);
-	IF(3, DOLIT, 0X2D, HOLD);
+	IF(3, DOLIT, 0x2D, HOLD);
 	THEN(1, EXITT);
 	HEADER(2, "#>");
 	int EDIGS = COLON(7, DROP, HLD, AT, PAD, OVER, SUBBB, EXITT);
@@ -1068,13 +1066,13 @@ int main(int ac, char* av[])
 	IF(3, DOLIT, 0x5F, ANDD);
 	THEN(1, EXITT);
 	HEADER(6, "DIGIT?");
-	int DIGTQ = COLON(9, TOR, TOUPP, DOLIT, 0X30, SUBBB, DOLIT, 9, OVER, LESS);
+	int DIGTQ = COLON(9, TOR, TOUPP, DOLIT, 0x30, SUBBB, DOLIT, 9, OVER, LESS);
 	IF(8, DOLIT, 7, SUBBB, DUPP, DOLIT, 10, LESS, ORR);
 	THEN(4, DUPP, RFROM, ULESS, EXITT);
 	HEADER(7, "NUMBER?");
-	int NUMBQ = COLON(12, BASE, AT, TOR, DOLIT, 0, OVER, COUNT, OVER, CAT, DOLIT, 0X24, EQUAL);
+	int NUMBQ = COLON(12, BASE, AT, TOR, DOLIT, 0, OVER, COUNT, OVER, CAT, DOLIT, 0x24, EQUAL);
 	IF(5, HEXX, SWAP, ONEP, SWAP, ONEM);
-	THEN(13, OVER, CAT, DOLIT, 0X2D, EQUAL, TOR, SWAP, RAT, SUBBB, SWAP, RAT, PLUS, QDUP);
+	THEN(13, OVER, CAT, DOLIT, 0x2D, EQUAL, TOR, SWAP, RAT, SUBBB, SWAP, RAT, PLUS, QDUP);
 	IF(1, ONEM);
 	FOR(6, DUPP, TOR, CAT, BASE, AT, DIGTQ);
 	WHILE(7, SWAP, BASE, AT, STAR, PLUS, RFROM, ONEP);
@@ -1118,7 +1116,7 @@ int main(int ac, char* av[])
 	HEADER(2, "U.");
 	int UDOT = COLON(6, BDIGS, DIGS, EDIGS, SPACE, TYPES, EXITT);
 	HEADER(1, ".");
-	int DOT = COLON(5, BASE, AT, DOLIT, 0XA, XORR);
+	int DOT = COLON(5, BASE, AT, DOLIT, 0xA, XORR);
 	IF(2, UDOT, EXITT);
 	THEN(4, STRR, SPACE, TYPES, EXITT);
 	HEADER(1, "?");
@@ -1165,7 +1163,7 @@ int main(int ac, char* av[])
 	int FIND = COLON(10, SWAP, DUPP, AT, TEMP, STORE, DUPP, AT, TOR, CELLP, SWAP);
 	BEGIN(2, AT, DUPP);
 	IF(9, DUPP, AT, DOLIT, 0xFFFFFF3F, ANDD, UPPER, RAT, UPPER, XORR);
-	IF(3, CELLP, DOLIT, 0XFFFFFFFF);
+	IF(3, CELLP, DOLIT, 0xFFFFFFFF);
 	ELSE(4, CELLP, TEMP, AT, SAMEQ);
 	THEN(0);
 	ELSE(6, RFROM, DROP, SWAP, CELLM, SWAP, EXITT);
@@ -1184,7 +1182,7 @@ int main(int ac, char* av[])
 	HEADER(3, "TAP");
 	int TAP = COLON(6, DUPP, EMIT, OVER, CSTOR, ONEP, EXITT);
 	HEADER(4, "kTAP");
-	int KTAP = COLON(9, DUPP, DOLIT, 0XD, XORR, OVER, DOLIT, 0XA, XORR, ANDD);
+	int KTAP = COLON(9, DUPP, DOLIT, 0xD, XORR, OVER, DOLIT, 0xA, XORR, ANDD);
 	IF(3, DOLIT, 8, XORR);
 	IF(2, BLANK, TAP);
 	ELSE(1, HATH);
@@ -1193,7 +1191,7 @@ int main(int ac, char* av[])
 	HEADER(6, "ACCEPT");
 	int ACCEP = COLON(3, OVER, PLUS, OVER);
 	BEGIN(2, DDUP, XORR);
-	WHILE(7, KEY, DUPP, BLANK, SUBBB, DOLIT, 0X5F, ULESS);
+	WHILE(7, KEY, DUPP, BLANK, SUBBB, DOLIT, 0x5F, ULESS);
 	IF(1, TAP);
 	ELSE(1, KTAP);
 	THEN(0);
@@ -1201,7 +1199,7 @@ int main(int ac, char* av[])
 	HEADER(6, "EXPECT");
 	int EXPEC = COLON(5, ACCEP, SPAN, STORE, DROP, EXITT);
 	HEADER(5, "QUERY");
-	int QUERY = COLON(12, TIB, DOLIT, 0X50, ACCEP, NTIB, STORE, DROP, DOLIT, 0, INN, STORE, EXITT);
+	int QUERY = COLON(12, TIB, DOLIT, 0x50, ACCEP, NTIB, STORE, DROP, DOLIT, 0, INN, STORE, EXITT);
 
 	// Text Interpreter
 
@@ -1212,7 +1210,7 @@ int main(int ac, char* av[])
 	IF(4, DOSTR, COUNT, TYPES, ABORT);
 	THEN(3, DOSTR, DROP, EXITT);
 	HEADER(5, "ERROR");
-	int ERRORR = COLON(11, SPACE, COUNT, TYPES, DOLIT, 0x3F, EMIT, DOLIT, 0X1B, EMIT, CR, ABORT);
+	int ERRORR = COLON(11, SPACE, COUNT, TYPES, DOLIT, 0x3F, EMIT, DOLIT, 0x1B, EMIT, CR, ABORT);
 	HEADER(10, "$INTERPRET");
 	int INTER = COLON(2, NAMEQ, QDUP);
 	IF(4, CAT, DOLIT, COMPO, ANDD);
@@ -1235,7 +1233,7 @@ int main(int ac, char* av[])
 	WHILE(2, TEVAL, ATEXE);
 	REPEAT(3, DROP, DOTOK, EXITT);
 	HEADER(4, "QUIT");
-	int QUITT = COLON(5, DOLIT, 0X100, TTIB, STORE, LBRAC);
+	int QUITT = COLON(5, DOLIT, 0x100, TTIB, STORE, LBRAC);
 	BEGIN(2, QUERY, EVAL);
 	AGAIN(0);
 
@@ -1248,7 +1246,7 @@ int main(int ac, char* av[])
 	HEADER(5, "ALLOT");
 	int ALLOT = COLON(4, ALIGN, CP, PSTOR, EXITT);
 	HEADER(3, "$,\"");
-	int STRCQ = COLON(9, DOLIT, 0X22, WORDD, COUNT, PLUS, ALIGN, CP, STORE, EXITT);
+	int STRCQ = COLON(9, DOLIT, 0x22, WORDD, COUNT, PLUS, ALIGN, CP, STORE, EXITT);
 	HEADER(7, "?UNIQUE");
 	int UNIQU = COLON(3, DUPP, NAMEQ, QDUP);
 	IF(6, COUNT, DOLIT, 0x1F, ANDD, SPACE, TYPES);
@@ -1368,11 +1366,11 @@ int main(int ac, char* av[])
 	HEADER(8, "CONSTANT");
 	int CONST = COLON(6, CODE, DOLIT, 0x2004, COMMA, COMMA, EXITT);
 	HEADER(IMEDD + 2, ".(");
-	int DOTPR = COLON(5, DOLIT, 0X29, PARSE, TYPES, EXITT);
+	int DOTPR = COLON(5, DOLIT, 0x29, PARSE, TYPES, EXITT);
 	HEADER(IMEDD + 1, "\\");
 	int BKSLA = COLON(5, DOLIT, 0xA, WORDD, DROP, EXITT);
 	HEADER(IMEDD + 1, "(");
-	int PAREN = COLON(5, DOLIT, 0X29, PARSE, DDROP, EXITT);
+	int PAREN = COLON(5, DOLIT, 0x29, PARSE, DDROP, EXITT);
 	HEADER(12, "COMPILE-ONLY");
 	int ONLY = COLON(6, DOLIT, 0x40, LAST, AT, PSTOR, EXITT);
 	HEADER(9, "IMMEDIATE");
@@ -1381,11 +1379,11 @@ int main(int ac, char* av[])
 
 	// Boot Up
 
-	printf("\n\nIZ=%lX R-stack=%lX", P, (popR << 2));
+	printf("\n\nIZ=%X R-stack=%X", P, (popR << 2));
 	P = 0;
 	int RESET = LABEL(2, 6, COLD);
 	P = 0x90;
-	int USER = LABEL(8, 0X100, 0x10, IMMED - 12, ENDD, IMMED - 12, INTER, QUITT, 0);
+	int USER = LABEL(8, 0x100, 0x10, IMMED - 12, ENDD, IMMED - 12, INTER, QUITT, 0);
 	// dump dictionary
 	//P = 0;
 	//for (len = 0; len < 0x200; len++) { CheckSum(); }
@@ -1398,7 +1396,7 @@ int main(int ac, char* av[])
 	top = 0;
 	printf("\nceForth v3.3, 01jul19cht\n");
 	while (TRUE) {
-		primitives[(unsigned char)cData[P++]]();
+		primitives[cData[P++]]();
 	}
 }
 /* End of ceforth_33.cpp */
