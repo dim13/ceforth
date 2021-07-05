@@ -1,2 +1,1 @@
-ceForth: ceForth.c
-	$(CC) $< -o $@
+ceForth: ceForth.o

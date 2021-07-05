@@ -38,13 +38,13 @@
 
 int32_t rack[256] = { 0 };
 int32_t stack[256] = { 0 };
+int32_t top = 0;
 int8_t RP = 0; // Return Stack Pointer
 int8_t SP = 0; // Data Stack Pointer
-int32_t top = 0;
-int32_t UP; // User Area Pointer
-int32_t IP; // Interpreter Pointer
-int32_t WP; // Word or Work Pointer
-int32_t thread;
+int32_t UP = 0; // User Area Pointer
+int32_t IP = 0; // Interpreter Pointer
+int32_t WP = 0; // Word or Work Pointer
+int32_t thread = 0;
 int32_t data[16000] = {};
 uint8_t* cData = (uint8_t*)data;
 
@@ -283,13 +283,15 @@ rot(void)
 void
 ddrop(void)
 {
-	drop(); drop();
+	drop();
+	drop();
 }
 
 void
 ddup(void)
 {
-	over(); over();
+	over();
+	over();
 }
 
 void
@@ -357,7 +359,8 @@ equal(void)
 void
 uless(void)
 {
-	top = LOWER(stack[SP], top) LOGICAL; SP--;
+	top = LOWER(stack[SP], top) LOGICAL;
+	SP--;
 }
 
 void
@@ -460,7 +463,8 @@ stasl(void)
 	int64_t m = stack[SP];
 	int64_t n = stack[SP - 1];
 	n *= m;
-	pop; pop;
+	pop;
+	pop;
 	top = (n / d);
 }
 
